@@ -52,15 +52,33 @@ Best Practices
 Troubleshooting
 Contributing
 License
-Introduction
+
+
+### Introduction
 AI Hub from AI Foundry on Azure is a centralized platform that allows teams to collaborate, manage resources, and streamline the development of AI projects. This guide will walk you through the basics of setting up and using AI Hub.
 
-Prerequisites
+### Prerequisites
 Before you begin, ensure you have the following:
 
 An Azure account with appropriate permissions.
 Access to Azure AI Foundry.
 Basic knowledge of Azure services and AI development.
-Setup
-Sign in to Azure AI Foundry: Go to the Azure AI Foundry portal and sign
+### Setup
+Sign in to Azure AI Foundry: Go to the Azure AI Foundry portal and sign in with your Azure account.
+Create a Project: If you don't have a project, create one by selecting + Create project at the top of the page.
+### Creating a Hub
+Navigate to Management Center: Select Management center from the left menu.
+Create a New Hub: Select All resources, then the down arrow next to + New project, and finally + New hub.
+Configure the Hub: Enter a name for your hub and modify other fields as needed. By default, a new AI services connection is created for the hub.
+Review and Create: Review the information and select Create.
+### Managing Projects
+Once your hub is created, you can manage projects within it:
+
+Create Projects: Developers can create projects from the hub and access shared resources.
+Security and Resources: Projects inherit security settings and shared resource access from the hub.
+### Best Practices
+Organize Work: Use projects to organize work, isolate data, and restrict access as needed.
+Preconfigure Resources: Set up connections to shared resources within the hub for easy access.
+Troubleshooting
+If you encounter any issues, refer to the Azure AI Foundry documentation for detailed troubleshooting steps.
  
