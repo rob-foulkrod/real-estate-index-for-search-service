@@ -78,7 +78,7 @@ Create Projects: Developers can create projects from the hub and access shared r
 Security and Resources: Projects inherit security settings and shared resource access from the hub.
 ### Best Practices
 Organize Work: Use projects to organize work, isolate data, and restrict access as needed.
-Preconfigure Resources: Set up connections to shared resources within the hub for easy access.
+Preconfigure Resources: Set up connections to shared resources within the hub for easy access. For SFI purposes, we are going to have the following roles: Search Index contributor, search index data contributor,
 Troubleshooting
 If you encounter any issues, refer to the Azure AI Foundry documentation for detailed troubleshooting steps.
  
