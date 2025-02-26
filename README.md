@@ -68,8 +68,8 @@ Sign in to Azure AI Foundry: Go to the Azure AI Foundry portal and sign in with 
 Create a Project: If you don't have a project, create one by selecting + Create project at the top of the page.
 ### Creating a Hub
 Navigate to Management Center: Select Management center from the left menu.
-Create a New Hub: Select All resources, then the down arrow next to + New project, and finally + New hub.
-Configure the Hub: Enter a name for your hub and modify other fields as needed. By default, a new AI services connection is created for the hub.
+To create a New Hub, Select All resources, then the down arrow next to + New project, and finally + New hub.
+Please go ahead and configure the Hub: Enter a name for your hub and modify other fields as needed. By default, a new AI services connection is created for the hub. The hub and the appropriate settings will be set up by the script as well. We have these instructions here as backup.
 Review and Create: Review the information and select Create.
 ### Managing Projects
 Once your hub is created, you can manage projects within it:
@@ -78,7 +78,8 @@ Create Projects: Developers can create projects from the hub and access shared r
 Security and Resources: Projects inherit security settings and shared resource access from the hub.
 ### Best Practices
 Organize Work: Use projects to organize work, isolate data, and restrict access as needed.
-Preconfigure Resources: Set up connections to shared resources within the hub for easy access. For SFI purposes, we are going to have the following roles: Search Index contributor, search index data contributor,
-Troubleshooting
+Preconfigure Resources: Set up connections to shared resources within the hub for easy access. For SFI purposes, we are going to have the following roles: Search Index contributor, search index data contributor, Storage blob data reader, and a managed identity of Azure AI administrator for the ML service to the AI foundry hub.
+
+### Troubleshooting
 If you encounter any issues, refer to the Azure AI Foundry documentation for detailed troubleshooting steps.
  
