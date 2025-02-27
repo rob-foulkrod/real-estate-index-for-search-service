@@ -1,27 +1,32 @@
 @description('Name of the Cognitive Search service to deploy')
-param searchService_name string = 'search'
+param searchService_name string = ''
  
 @description('Name of Cognitive Services (AIServices) resource')
-param cognitiveService_name string = 'cog'
+param cognitiveService_name string = ''
  
 @description('Name of the main “hub” AML workspace')
-param workspaces_testaifoundry_name string = 'hub'
+param workspaces_testaifoundry_name string = ''
  
 @description('Name of the “project” AML workspace')
-param workspace_testproject_name string = 'project'
+param workspace_testproject_name string = ''
+
+@description('Tags to apply to all resources')
+param tags object = {}
+
+param location string = ''
  
- 
-var unique_searchService_name = '${searchService_name}-${uniqueString(resourceGroup().id)}'
-var unique_cognitiveService_name = '${cognitiveService_name}-${uniqueString(resourceGroup().id)}'
-var unique_workspaces_testaifoundry_name = '${workspaces_testaifoundry_name}-${uniqueString(resourceGroup().id)}'
-var unique_workspace_testproject_name = '${workspace_testproject_name}-${uniqueString(resourceGroup().id)}'
+var unique_searchService_name = empty(searchService_name) ? '${searchService_name}-${uniqueString(resourceGroup().id)}' : searchService_name
+var unique_cognitiveService_name = empty(cognitiveService_name) ?'${cognitiveService_name}-${uniqueString(resourceGroup().id)}' : cognitiveService_name
+var unique_workspaces_testaifoundry_name = empty(workspaces_testaifoundry_name) ? '${workspaces_testaifoundry_name}-${uniqueString(resourceGroup().id)}' : workspaces_testaifoundry_name
+var unique_workspace_testproject_name = empty(workspace_testproject_name) ? '${workspace_testproject_name}-${uniqueString(resourceGroup().id)}' : workspace_testproject_name
 var uniquie_storage_name = 'st${uniqueString(resourceGroup().id)}'
  
 targetScope = 'resourceGroup'
  
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: uniquie_storage_name
-  location: resourceGroup().location
+  location: location
+  tags: tags
   sku: {
     name: 'Standard_LRS'
   }
@@ -75,7 +80,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
    ------------------------------------------------------------------- */
 resource cognitiveServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   name: unique_cognitiveService_name
-  location: 'eastus'
+  location: location
+  tags: tags
   sku: {
     name: 'S0'
   }
@@ -155,7 +161,7 @@ resource searchService 'Microsoft.Search/searchServices@2024-06-01-preview' = {
 /* The “Hub” AML workspace */
 resource mlWorkspaceHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
   name: unique_workspaces_testaifoundry_name
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Basic'
   }
@@ -192,7 +198,7 @@ resource mlWorkspaceHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01
 /* The “project” AML workspace */
 resource mlWorkspaceProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
   name: unique_workspace_testproject_name
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Basic'
   }
@@ -242,27 +248,7 @@ resource roleAssignmentProject 'Microsoft.Authorization/roleAssignments@2022-04-
 }
  
 var storageBlobDataContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-// These are automatic when you assign the storage accout to the AI Hub
- 
-// resource roleAssignmentHubStorageRG 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   name: guid(resourceGroup().id, 'roleAssignmentHubStorageRG')
-//   scope: storageAccount
-//   properties: {
-//     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributor) // Search Index Data Contributor
-//     principalId: mlWorkspaceHub.identity.principalId// Replace with the actual principal ID
-//     principalType: 'ServicePrincipal'
-//   }
-// }
- 
-// resource roleAssignmentProjectStorageRG 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   name: guid(resourceGroup().id, 'roleAssignmentProjectStorageRG')
-//   scope: storageAccount
-//   properties: {
-//     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributor) // Search Index Data Contributor
-//     principalId:  mlWorkspaceProject.identity.principalId// Replace with the actual principal ID
-//     principalType: 'ServicePrincipal'
-//   }
-// }
+
  
 resource roleAssignmentProjectSearchService 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(resourceGroup().id, 'roleAssignmentProjectSearchService')

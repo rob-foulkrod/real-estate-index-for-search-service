@@ -9,11 +9,7 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-// Tags that should be applied to all resources.
-// 
-// Note that 'azd-service-name' tags should be applied separately to service host resources.
-// Example usage:
-//   tags: union(tags, { 'azd-service-name': <service name in azure.yaml> })
+
 var tags = {
   'azd-env-name': environmentName
 }
@@ -29,6 +25,8 @@ module resources './resources.bicep' = {
   name: 'resources'
   scope: rg
   params: {
+    tags: tags
+    location: location
     searchService_name: 'search-${resourceToken}'
     cognitiveService_name: 'cog-${resourceToken}'
     workspaces_testaifoundry_name: 'hub-${resourceToken}'
