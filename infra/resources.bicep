@@ -13,6 +13,8 @@ param workspace_testproject_name string = ''
 @description('Tags to apply to all resources')
 param tags object = {}
 
+param currentUserId string
+
 param location string = ''
  
 var unique_searchService_name = empty(searchService_name) ? '${searchService_name}-${uniqueString(resourceGroup().id)}' : searchService_name
@@ -23,201 +25,147 @@ var uniquie_storage_name = 'st${uniqueString(resourceGroup().id)}'
  
 targetScope = 'resourceGroup'
  
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  name: uniquie_storage_name
-  location: location
-  tags: tags
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-  properties: {
-    accessTier: 'Hot'
-    allowBlobPublicAccess: false
-    allowCrossTenantReplication: false
-    allowSharedKeyAccess: true
-    encryption: {
-      keySource: 'Microsoft.Storage'
-      requireInfrastructureEncryption: false
-      services: {
-        blob: {
-          enabled: true
-          keyType: 'Account'
-        }
-        file: {
-          enabled: true
-          keyType: 'Account'
-        }
-        queue: {
-          enabled: true
-          keyType: 'Service'
-        }
-        table: {
-          enabled: true
-          keyType: 'Service'
-        }
-      }
-    }
-    isHnsEnabled: false
-    isNfsV3Enabled: false
-    keyPolicy: {
-      keyExpirationPeriodInDays: 7
-    }
-    largeFileSharesState: 'Disabled'
-    minimumTlsVersion: 'TLS1_2'
+/* -------------------------------------------------------------------
+   STORAGE ACCOUNT
+   ------------------------------------------------------------------- */
+
+module storageAccount 'br/public:avm/res/storage/storage-account:0.18.0' = {
+  name: 'storageAccountDeployment'
+  params: {
+
+    name: uniquie_storage_name
+    
+    allowBlobPublicAccess: true
+    allowSharedKeyAccess: true  
+    location: location
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Deny'
     }
-    supportsHttpsTrafficOnly: true
   }
 }
- 
  
  
 /* -------------------------------------------------------------------
    COGNITIVE SERVICES (AIServices) ACCOUNT
    ------------------------------------------------------------------- */
-resource cognitiveServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
-  name: unique_cognitiveService_name
-  location: location
-  tags: tags
-  sku: {
-    name: 'S0'
-  }
-  kind: 'AIServices'
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
+module cognitiveServices 'br/public:avm/res/cognitive-services/account:0.10.0' = {
+  name: 'accountDeployment'
+  params:{
+    name: unique_cognitiveService_name
+    location: location
+    tags: tags
+    sku: 'S0'
+    kind: 'AIServices'
+    disableLocalAuth: false
+    managedIdentities: {
+      systemAssigned: true
+    }
+  
     customSubDomainName: unique_cognitiveService_name
     publicNetworkAccess: 'Enabled'
+    deployments:[
+      {
+        model: {
+          name: 'text-embedding-3-large'
+          format: 'OpenAI'
+          version: '1'
+        }
+        name: 'text-embedding-3-large'
+        sku: {
+          name: 'Standard'
+          capacity: 17
+        }
+        raiPolicyName: 'Microsoft.DefaultV2'
+      }
+
+    ]  
   }
+  
 }
  
-/* Deploy text-embedding-3-large */
-resource textEmbedding3Large 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = {
-  name: 'text-embedding-3-large'
-  parent: cognitiveServices
-  sku: {
-    name: 'Standard'
-    capacity: 17
-  }
-  properties: {
-    model: {
-      format: 'OpenAI'
-      name: 'text-embedding-3-large'
-      version: '1'
-    }
-    versionUpgradeOption: 'OnceNewDefaultVersionAvailable'
-    currentCapacity: 17
-    raiPolicyName: 'Microsoft.DefaultV2'
-  }
-}
+
  
 /* -------------------------------------------------------------------
    SEARCH SERVICE
    ------------------------------------------------------------------- */
-resource searchService 'Microsoft.Search/searchServices@2024-06-01-preview' = {
-  name: unique_searchService_name
-  location: resourceGroup().location
-  tags: {
-    ProjectType: 'aoai-your-data-service'
-  }
-  sku: {
-    name: 'standard'
-  }
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    replicaCount: 1
-    partitionCount: 1
-    hostingMode: 'default'
-    publicNetworkAccess: 'Enabled'
-    networkRuleSet: {
-      ipRules: []
-      bypass: 'None'
-    }
-    encryptionWithCmk: {
-      enforcement: 'Unspecified'
-    }
-    disableLocalAuth: false
-    authOptions: {
-      aadOrApiKey: {
-        aadAuthFailureMode: null
+module searchService 'br/public:avm/res/search/search-service:0.9.0' = {
+    name: 'searchServiceDeployment'
+    params: {
+      // Required parameters
+      name: unique_searchService_name
+      // Non-required parameters
+      location: location
+      tags:tags
+      sku: 'standard'
+      managedIdentities: {
+        systemAssigned: true
       }
+      replicaCount: 1
+      partitionCount: 1
+      hostingMode: 'default'
+      publicNetworkAccess: 'Enabled'
+      networkRuleSet: {
+        ipRules: []
+        bypass: 'None'
+      }
+      disableLocalAuth: false
+      authOptions: {
+        aadOrApiKey: {
+          aadAuthFailureMode: null
+        }
+      }
+      semanticSearch: 'free'
     }
-    disabledDataExfiltrationOptions: []
-    semanticSearch: 'free'
-   
   }
-}
+
  
 /* -------------------------------------------------------------------
    AML WORKSPACES (HUB + PROJECTS) & CONNECTIONS
    ------------------------------------------------------------------- */
  
 /* The “Hub” AML workspace */
-resource mlWorkspaceHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
-  name: unique_workspaces_testaifoundry_name
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  kind: 'Hub'
-  identity: {
-    type: 'SystemAssigned'
-  }
- 
-  properties: {
-    friendlyName: 'Testaifoundry'
-    hbiWorkspace: false
-    managedNetwork: {
-      isolationMode: 'Disabled'
+module mlWorkspaceHub 'br/public:avm/res/machine-learning-services/workspace:0.10.0' = {
+  name: 'workspaceDeployment'
+  params: {
+    // Required parameters
+    name: unique_workspaces_testaifoundry_name
+    kind: 'Hub'
+    
+    managedIdentities: {
+      systemAssigned: true
     }
-    allowRoleAssignmentOnRG: true
-    v1LegacyMode: false
+    sku: 'Basic'
+    associatedStorageAccountResourceId: storageAccount.outputs.resourceId
+    location: location
     publicNetworkAccess: 'Enabled'
-    ipAllowlist: []
-    discoveryUrl: 'https://eastus.api.azureml.ms/discovery'
-    enableSoftwareBillOfMaterials: false
-    storageAccount: storageAccount.id
-    associatedWorkspaces: [
-      resourceId('Microsoft.MachineLearningServices/workspaces', unique_workspace_testproject_name)
-    ]
-    workspaceHubConfig: {
-      defaultWorkspaceResourceGroup: resourceGroup().id
-      enableDataIsolation: true
-      systemDatastoresAuthMode: 'identity'
-      enableServiceSideCMKEncryption: false
-    }
   }
 }
+
  
 /* The “project” AML workspace */
-resource mlWorkspaceProject 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
-  name: unique_workspace_testproject_name
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  kind: 'Project'
-  identity: {
-    type: 'SystemAssigned'
-  }
- 
-  properties: {
-    friendlyName: unique_workspace_testproject_name
-    hbiWorkspace: false
-    enableSoftwareBillOfMaterials: false
-    hubResourceId: mlWorkspaceHub.id
-    enableDataIsolation: true
+module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0.10.0' = {
+  name: 'workspaceProjectDeployment'
+  params: {
+    // Required parameters
+    name: unique_workspace_testproject_name
+    kind: 'Project'
+    sku: 'Basic'
+    // Non-required parameters
+    hubResourceId: mlWorkspaceHub.outputs.resourceId
     systemDatastoresAuthMode: 'identity'
-    enableServiceSideCMKEncryption: false
+    location: location
+    hbiWorkspace: false
+    managedIdentities: {
+      systemAssigned: true
+    }
+    publicNetworkAccess: 'Enabled'
   }
 }
- 
+
+
+
+
 /* -------------------------------------------------------------------
    Managed Identitiy ROLE ASSIGNMENT
    Hub
@@ -225,37 +173,51 @@ resource mlWorkspaceProject 'Microsoft.MachineLearningServices/workspaces@2024-0
    Search Index Data Contributor - 8ebe5a00-799e-43f5-93ac-243d3dce84a7
    ------------------------------------------------------------------- */
 var searchIndexDataContributor = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
- 
-  resource roleAssignmentHub 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-    name: guid(resourceGroup().id, 'roleAssignmentHub')
-    scope: searchService
-    properties: {
-      roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributor)// Search Index Data Contributor
-      principalId: mlWorkspaceHub.identity.principalId// Replace with the actual principal ID
+
+module roleAssignemntmlWorkspaceHubToSearch 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+
+    name: 'roleAssignemntmlWorkspaceHubToSearch'
+    
+    params: {
+      principalId: mlWorkspaceHub.outputs.systemAssignedMIPrincipalId
       principalType: 'ServicePrincipal'
-     
+      roleDefinitionId: searchIndexDataContributor
+      resourceId: searchService.outputs.resourceId
     }
+
   }
  
-resource roleAssignmentProject 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, 'roleAssignmentProject')
-  scope: searchService
-  properties: {
+  module roleAssignemntmlProjectToSearch 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name: 'roleAssignemntmlProjectToSearch'
+
+  params: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributor) // Search Index Data Contributor
-    principalId:  mlWorkspaceProject.identity.principalId// Replace with the actual principal ID
+    principalId:  workspaceProject.outputs.systemAssignedMIPrincipalId
     principalType: 'ServicePrincipal'
+    resourceId: searchService.outputs.resourceId  
   }
 }
  
 var storageBlobDataContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 
- 
-resource roleAssignmentProjectSearchService 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, 'roleAssignmentProjectSearchService')
-  scope: storageAccount
-  properties: {
+module roleAssignmentSearchToStorage 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name: 'roleAssignmentSearchToStorage'
+
+  params: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributor) // Search Index Data Contributor
-    principalId:  searchService.identity.principalId
+    principalId:  searchService.outputs.systemAssignedMIPrincipalId
     principalType: 'ServicePrincipal'
+    resourceId: storageAccount.outputs.resourceId
+  }
+}
+
+module roleAssignmentUserToStorage'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name:  'roleAssignmentUserToStorage'
+
+  params: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributor) // Search Index Data Contributor
+    principalId:  currentUserId
+    principalType: 'User'
+    resourceId: storageAccount.outputs.resourceId
   }
 }

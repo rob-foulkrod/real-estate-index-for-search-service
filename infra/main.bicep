@@ -9,6 +9,7 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param currentUserId string
 
 var tags = {
   'azd-env-name': environmentName
@@ -25,6 +26,7 @@ module resources './resources.bicep' = {
   name: 'resources'
   scope: rg
   params: {
+    currentUserId: currentUserId
     tags: tags
     location: location
     searchService_name: 'search-${resourceToken}'
