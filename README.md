@@ -13,15 +13,15 @@ This template could be used as a starting point for creating your own AZD-compat
 
 1. Create a new folder on your machine.
 ```
-mkdir petender/azd-tdd-starter
+mkdir rob-foulkrod/aihubs
 ```
 2. Next, navigate to the new folder.
 ```
-cd petender/azd-tdd-starter
+cd rob-foulkrod/aihubs
 ```
 3. Next, run `azd init` to initialize the deployment.
 ```
-azd init -t petender/azd-tdd-starter
+azd init -t rob-foulkrod/aihubs
 ```
 4. Copy the starter template into its own directory and modify the template.
 ```
