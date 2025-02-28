@@ -1,44 +1,32 @@
-# AZD Trainer-Demo-Deploy Starter template
+# AI Hub from AI foundry on Azure
 
-This template could be used as a starting point for creating your own AZD-compatible templates, which you will contribute to [Trainer-Demo-Deploy](https://aka.ms/trainer-demo-deploy). 
+This repository contains the AI Hub from AI foundry on Azure platform, designed to serve as a foundation to doems involving AI Hubs, AI Projects, and Azure AI Search.
 
-## ⬇️ Installation
-- [Azure Developer CLI - AZD](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
-    - When installing AZD, the above the following tools will be installed on your machine as well, if not already installed:
-        - [GitHub CLI](https://cli.github.com)
-        - [Bicep CLI](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
-    - You need Owner or Contributor access permissions to an Azure Subscription to  deploy the scenario.
-
-## 🚀 Cloning the scenario in 4 steps:
-
-1. Create a new folder on your machine.
-```
-mkdir rob-foulkrod/aihubs
-```
-2. Next, navigate to the new folder.
-```
-cd rob-foulkrod/aihubs
-```
-3. Next, run `azd init` to initialize the deployment.
-```
-azd init -t rob-foulkrod/aihubs
-```
-4. Copy the starter template into its own directory and modify the template.
-```
-Update the main.bicep and resources.bicep with your own resource information
-```
-
-## 🚀 Push the scenario to your own GitHub:
-
-1. Sync the new scenario you created into your own GitHub account into a public repo
+[Screen shot here]
 
 
+## 🚀 Deployment
 
-3. Once available, add the necessary "demo scenario artifacts" (demoguide, architecture diagram,...) 
+1. **Create a new folder on your machine.**
+   ```sh
+   mkdir rob-foulkrod/aihubs
+   ```
 
-4. With all template details and demo artifacts available in the repo, following the steps on how to [Contribute](https://microsoftlearning.github.io/trainer-demo-deploy/docs/contribute) to Trainer-Demo-Deploy.
+2. **Navigate to the new folder.**
+   ```sh
+   cd rob-foulkrod/aihubs
+   ```
 
-   
+3. **Initialize the deployment with `azd init`.**
+   ```sh
+   azd init -t rob-foulkrod/aihubs
+   ```
+
+4. **Trigger the actual deployment with `azd up`.**
+   ```sh
+   azd up
+   ```
+
 ## AI Hub from AI foundry on Azure
 This repository provides a comprehensive guide on how to use AI Hub from AI Foundry on Azure. It includes step-by-step instructions, best practices, and examples to help you get started quickly and efficiently.
 
