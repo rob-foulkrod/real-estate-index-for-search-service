@@ -9,17 +9,17 @@ This repository contains the AI Hub from AI foundry on Azure platform, designed 
 
 1. **Create a new folder on your machine.**
    ```sh
-   mkdir rob-foulkrod/aihubs
+   mkdir rob-foulkrod/real-estate-index-for-search-service
    ```
 
 2. **Navigate to the new folder.**
    ```sh
-   cd rob-foulkrod/aihubs
+   cd rob-foulkrod/real-estate-index-for-search-service
    ```
 
 3. **Initialize the deployment with `azd init`.**
    ```sh
-   azd init -t rob-foulkrod/aihubs
+   azd init -t rob-foulkrod/real-estate-index-for-search-service
    ```
 
 4. **Trigger the actual deployment with `azd up`.**
