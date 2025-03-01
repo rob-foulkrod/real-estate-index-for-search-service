@@ -16,15 +16,26 @@ param tags object = {}
 param currentUserId string
 
 param location string = ''
+
+param resourceToken string = ''
  
-var unique_searchService_name = empty(searchService_name) ? '${searchService_name}-${uniqueString(resourceGroup().id)}' : searchService_name
-var unique_cognitiveService_name = empty(cognitiveService_name) ?'${cognitiveService_name}-${uniqueString(resourceGroup().id)}' : cognitiveService_name
-var unique_workspaces_testaifoundry_name = empty(workspaces_testaifoundry_name) ? '${workspaces_testaifoundry_name}-${uniqueString(resourceGroup().id)}' : workspaces_testaifoundry_name
-var unique_workspace_testproject_name = empty(workspace_testproject_name) ? '${workspace_testproject_name}-${uniqueString(resourceGroup().id)}' : workspace_testproject_name
-var uniquie_storage_name = 'st${uniqueString(resourceGroup().id)}'
+var unique_searchService_name = empty(searchService_name) ? '${searchService_name}-${resourceToken}' : searchService_name
+var unique_cognitiveService_name = empty(cognitiveService_name) ?'${cognitiveService_name}-${resourceToken}' : cognitiveService_name
+var unique_workspaces_testaifoundry_name = empty(workspaces_testaifoundry_name) ? '${workspaces_testaifoundry_name}-${resourceToken}' : workspaces_testaifoundry_name
+var unique_workspace_testproject_name = empty(workspace_testproject_name) ? '${workspace_testproject_name}-${resourceToken}' : workspace_testproject_name
+var unique_scriptingIdentity_name = 'mi-scripting-${resourceToken}'
+var uniquie_storage_name = 'st${resourceToken}'
  
 targetScope = 'resourceGroup'
  
+module scriptingIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.0' = {
+  name: 'scriptingIdentityDeployment'
+  params: {
+    name: unique_scriptingIdentity_name
+    location: location
+  }
+}
+
 /* -------------------------------------------------------------------
    STORAGE ACCOUNT
    ------------------------------------------------------------------- */
@@ -36,13 +47,40 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.18.0' = {
     name: uniquie_storage_name
     
     allowBlobPublicAccess: true
-    allowSharedKeyAccess: true  
+    allowSharedKeyAccess: true
+    defaultToOAuthAuthentication: true
     location: location
+    blobServices: {
+      enabled: true
+      containers: [
+        {
+          name: 'samples'
+          publicAccess: 'None'
+        }
+        {
+          name: 'scriptlogs'
+          publicAccess: 'None'
+        }
+      ]
+    }
     networkAcls: {
       bypass: 'AzureServices'
-      defaultAction: 'Deny'
+      defaultAction: 'Allow'
     }
+    roleAssignments: [
+      {
+        principalId: scriptingIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: 'Storage Blob Data Contributor'
+      }
+      {
+        principalId: currentUserId
+        principalType: 'User'
+        roleDefinitionIdOrName: 'Storage Blob Data Contributor'
+      }
+    ]
   }
+
 }
  
  
@@ -101,6 +139,18 @@ module searchService 'br/public:avm/res/search/search-service:0.9.0' = {
       managedIdentities: {
         systemAssigned: true
       }
+      roleAssignments: [
+        {
+          principalId: scriptingIdentity.outputs.principalId
+          principalType: 'ServicePrincipal'
+          roleDefinitionIdOrName: 'Search Service Contributor'
+        }
+        {
+          principalId: scriptingIdentity.outputs.principalId
+          principalType: 'ServicePrincipal'
+          roleDefinitionIdOrName: 'Search Index Data Contributor'
+        }
+      ]
       replicaCount: 1
       partitionCount: 1
       hostingMode: 'default'
@@ -164,8 +214,6 @@ module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0
 }
 
 
-
-
 /* -------------------------------------------------------------------
    Managed Identitiy ROLE ASSIGNMENT
    Hub
@@ -173,6 +221,7 @@ module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0
    Search Index Data Contributor - 8ebe5a00-799e-43f5-93ac-243d3dce84a7
    ------------------------------------------------------------------- */
 var searchIndexDataContributor = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+
 
 module roleAssignemntmlWorkspaceHubToSearch 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
 
@@ -211,13 +260,118 @@ module roleAssignmentSearchToStorage 'br/public:avm/ptn/authorization/resource-r
   }
 }
 
-module roleAssignmentUserToStorage'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
-  name:  'roleAssignmentUserToStorage'
 
+
+
+
+module uploadBlobsScript 'br/public:avm/res/resources/deployment-script:0.5.0' = {
+  name: 'uploadBlobsScriptDeployment'
   params: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributor) // Search Index Data Contributor
-    principalId:  currentUserId
-    principalType: 'User'
-    resourceId: storageAccount.outputs.resourceId
+    kind: 'AzurePowerShell'
+    name: 'pwscript-uploadBlobsScript'
+    azPowerShellVersion: '12.3'
+    location: location
+    
+    managedIdentities: {
+      userAssignedResourceIds: [
+        scriptingIdentity.outputs.resourceId
+      ]
+    }
+    cleanupPreference: 'OnSuccess'
+    retentionInterval: 'P1D'
+    enableTelemetry: true
+    storageAccountResourceId: storageAccount.outputs.resourceId
+    arguments: '-StorageAccountName ${storageAccount.outputs.name} -SearchServiceName ${searchService.outputs.name}' //multi line strings do not support interpolation in bicep yet
+    scriptContent: '''
+      param(
+          [string] $StorageAccountName,
+          [string] $SearchServiceName
+      )
+      
+      # Validate Parameters
+      if ($StorageAccountName -eq $null) {
+          throw "Storage Account is not supplied as a parameter"
+      }
+      if ($SearchServiceName -eq $null) {
+          throw "Search Service Name is not supplied as a parameter"
+      }
+      
+      try {
+          # Upload Documents to Azure Storage
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/rob-foulkrod/aihubs/refs/heads/main/data/hotels/HotelsData_toAzureSearch.JSON" -OutFile HotelsData_toAzureSearch.JSON -UseBasicParsing
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/rob-foulkrod/aihubs/refs/heads/main/data/hotels/HotelsData_toAzureSearch.csv" -OutFile HotelsData_toAzureSearch.csv -UseBasicParsing
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/rob-foulkrod/aihubs/refs/heads/main/data/hotels/Hotels_IndexDefinition.JSON" -OutFile Hotels_IndexDefinition.JSON -UseBasicParsing
+      
+          $context = New-AzStorageContext -StorageAccountName $StorageAccountName
+      
+          # samples container is precreated in the storage bicep resource
+          Set-AzStorageBlobContent -Context $context -Container "samples" -File HotelsData_toAzureSearch.JSON -Blob HotelsData_toAzureSearch.JSON -Force
+          Set-AzStorageBlobContent -Context $context -Container "samples" -File HotelsData_toAzureSearch.csv -Blob HotelsData_toAzureSearch.csv -Force
+          Set-AzStorageBlobContent -Context $context -Container "samples" -File Hotels_IndexDefinition.JSON -Blob Hotels_IndexDefinition.JSON -Force
+      
+          
+
+          # Search Get Access Token
+          $access_token = (Get-AzAccessToken -ResourceUrl "https://search.azure.com").Token
+      
+          # throw exception of the access token is not retrieved
+          if ($access_token -eq $null) {
+              throw "Failed to retrieve access token"
+          }
+
+
+          # Create Index
+          $uri = "https://$SearchServiceName.search.windows.net/indexes?api-version=2024-07-01"
+          $body = Get-Content -Path './Hotels_IndexDefinition.JSON' -Raw
+
+          $maxRetries = 3
+          $retryCount = 0
+          $success = $false
+      
+          while (-not $success -and $retryCount -lt $maxRetries) {
+              try {
+                  $response = Invoke-RestMethod -Uri $uri -Method 'POST' -Body $body -Headers @{Authorization="Bearer $access_token"} -ContentType "application/json"
+                  $success = $true
+              } catch {
+                  $retryCount++
+                  Write-Host "Attempt $retryCount failed. Retrying..."
+                  Start-Sleep -Seconds 2
+              }
+          }
+      
+          if (-not $success) {
+              throw "Failed to create index after $maxRetries attempts."
+          }
+
+
+          # Upload Data to Index
+          $uri = "https://$SearchServiceName.search.windows.net/indexes/hotels/docs/index?api-version=2024-07-01"
+          $body = Get-Content -Path HotelsData_toAzureSearch.JSON -Raw
+      
+          $maxRetries = 3
+          $retryCount = 0
+          $success = $false
+      
+          while (-not $success -and $retryCount -lt $maxRetries) {
+              try {
+                  $response = Invoke-RestMethod -Uri $uri -Method 'POST' -Body $body -Headers @{Authorization="Bearer $access_token"} -ContentType "application/json"
+                  $success = $true
+              } catch {
+                  $retryCount++
+                  Write-Host "Attempt $retryCount failed. Retrying..."
+                  Start-Sleep -Seconds 2
+              }
+          }
+      
+          if (-not $success) {
+              throw "Failed to upload data to index after $maxRetries attempts."
+          }
+      
+
+      } catch {
+          Write-Host "An error occurred: $_"
+          throw
+      }
+      '''
   }
 }

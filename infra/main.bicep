@@ -26,6 +26,7 @@ module resources './resources.bicep' = {
   name: 'resources'
   scope: rg
   params: {
+    resourceToken: resourceToken
     currentUserId: currentUserId
     tags: tags
     location: location
