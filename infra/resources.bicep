@@ -78,6 +78,16 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.18.0' = {
         principalType: 'User'
         roleDefinitionIdOrName: 'Storage Blob Data Contributor'
       }
+      {
+        principalId: currentUserId
+        principalType: 'User'
+        roleDefinitionIdOrName: 'Storage File Data Privileged Reader'
+      }
+      {
+        principalId: currentUserId
+        principalType: 'User'
+        roleDefinitionIdOrName: 'Storage Table Data Contributor'
+      }
     ]
   }
 
@@ -150,6 +160,16 @@ module searchService 'br/public:avm/res/search/search-service:0.9.0' = {
           principalType: 'ServicePrincipal'
           roleDefinitionIdOrName: 'Search Index Data Contributor'
         }
+        {
+          principalId: currentUserId
+          principalType: 'User'
+          roleDefinitionIdOrName: 'Search Index Data Contributor'
+        }
+        {
+          principalId: currentUserId
+          principalType: 'User'
+          roleDefinitionIdOrName: 'Search Service Contributor'
+        }
       ]
       replicaCount: 1
       partitionCount: 1
@@ -189,7 +209,15 @@ module mlWorkspaceHub 'br/public:avm/res/machine-learning-services/workspace:0.1
     associatedStorageAccountResourceId: storageAccount.outputs.resourceId
     location: location
     publicNetworkAccess: 'Enabled'
+    roleAssignments: [
+      {
+        principalId: currentUserId
+        principalType: 'User'
+        roleDefinitionIdOrName: '3afb7f49-54cb-416e-8c09-6dc049efa503' // 'Azure AI Inference Deployment Operator'
+      }
+    ]
   }
+  
 }
 
  
@@ -210,6 +238,13 @@ module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0
       systemAssigned: true
     }
     publicNetworkAccess: 'Enabled'
+    roleAssignments: [
+      {
+        principalId: currentUserId
+        principalType: 'User'
+        roleDefinitionIdOrName: '3afb7f49-54cb-416e-8c09-6dc049efa503' // 'Azure AI Inference Deployment Operator'
+      }
+    ]
   }
 }
 
@@ -221,6 +256,31 @@ module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0
    Search Index Data Contributor - 8ebe5a00-799e-43f5-93ac-243d3dce84a7
    ------------------------------------------------------------------- */
 var searchIndexDataContributor = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+var searchServiceContributor = '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+var storageBlobDataContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+var storageBlobDataReader = '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
+var storageFileDataPrivilegedReader = 'b8eda974-7b85-4f76-af95-65846b26df6d'
+
+module HubToSearchService 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
+  name: 'HubToSearchServiceRole'
+  params: {
+    principalId: mlWorkspaceHub.outputs.systemAssignedMIPrincipalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: searchServiceContributor// Search Index Data Contributor
+    resourceId: searchService.outputs.resourceId
+  }
+}
+
+
+module ProjectToSearchService 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
+  name: 'ProjectToSearchServiceRole'
+  params: {
+    principalId: workspaceProject.outputs.systemAssignedMIPrincipalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: searchServiceContributor// Search Index Data Contributor
+    resourceId: searchService.outputs.resourceId
+  }
+}
 
 
 module roleAssignemntmlWorkspaceHubToSearch 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
@@ -231,29 +291,31 @@ module roleAssignemntmlWorkspaceHubToSearch 'br/public:avm/ptn/authorization/res
       principalId: mlWorkspaceHub.outputs.systemAssignedMIPrincipalId
       principalType: 'ServicePrincipal'
       roleDefinitionId: searchIndexDataContributor
+
       resourceId: searchService.outputs.resourceId
     }
 
   }
  
-  module roleAssignemntmlProjectToSearch 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+module roleAssignemntmlProjectToSearch 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
   name: 'roleAssignemntmlProjectToSearch'
 
   params: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributor) // Search Index Data Contributor
+    roleDefinitionId: searchIndexDataContributor // Search Index Data Contributor
     principalId:  workspaceProject.outputs.systemAssignedMIPrincipalId
     principalType: 'ServicePrincipal'
     resourceId: searchService.outputs.resourceId  
   }
 }
+
  
-var storageBlobDataContributor = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+
 
 module roleAssignmentSearchToStorage 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
   name: 'roleAssignmentSearchToStorage'
 
   params: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataContributor) // Search Index Data Contributor
+    roleDefinitionId: storageBlobDataContributor // Search Index Data Contributor
     principalId:  searchService.outputs.systemAssignedMIPrincipalId
     principalType: 'ServicePrincipal'
     resourceId: storageAccount.outputs.resourceId
@@ -261,7 +323,48 @@ module roleAssignmentSearchToStorage 'br/public:avm/ptn/authorization/resource-r
 }
 
 
+module roleAssignmentHubToStorage 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name: 'roleAssignmentHubToStorage'
 
+  params: {
+    roleDefinitionId: storageBlobDataReader // Search Index Data Contributor
+    principalId:  mlWorkspaceHub.outputs.systemAssignedMIPrincipalId
+    principalType: 'ServicePrincipal'
+    resourceId: storageAccount.outputs.resourceId
+  }
+}
+module roleAssignmentProjectToStorage 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name: 'roleAssignmentProjectToStorage'
+
+  params: {
+    roleDefinitionId: storageBlobDataReader // Search Index Data Contributor
+    principalId:  workspaceProject.outputs.systemAssignedMIPrincipalId
+    principalType: 'ServicePrincipal'
+    resourceId: storageAccount.outputs.resourceId
+  }
+}
+
+//hub and project get storageFileDataPriv reader on the storage account
+module roleAssignmentHubToStorageFileDataPrivilegedReader 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name: 'roleAssignmentHubToStorFileDataPrivRea'
+
+  params: {
+    roleDefinitionId: storageFileDataPrivilegedReader // Search Index Data Contributor
+    principalId:  mlWorkspaceHub.outputs.systemAssignedMIPrincipalId
+    principalType: 'ServicePrincipal'
+    resourceId: storageAccount.outputs.resourceId
+  }
+}
+module roleAssignmentProjectToStorageFileDataPrivilegedReader 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' ={
+  name: 'roleAssignmentProjectToStorFileDataPrivRdr'
+
+  params: {
+    roleDefinitionId: storageFileDataPrivilegedReader // Search Index Data Contributor
+    principalId:  workspaceProject.outputs.systemAssignedMIPrincipalId
+    principalType: 'ServicePrincipal'
+    resourceId: storageAccount.outputs.resourceId
+  }
+}
 
 
 module uploadBlobsScript 'br/public:avm/res/resources/deployment-script:0.5.0' = {
