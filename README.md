@@ -71,7 +71,7 @@ Preconfigure Resources: Set up connections to shared resources within the hub fo
 ### Security roles needed
 1. The user service principal needs to be an owner on the search service
 2. AI hub and project need to contributors on the search service
-3. The AI hub and the user service principal need to have the following roles: Search Index Data Contributor, Search Service Contributor, Storage Blob data reader and Storage file Data privileged reader
+3. The AI hub and the user service principal need to have the following roles: Search Index Data Contributor, Search Service Contributor, Storage Blob data reader, Storage Table Data Contributor and Storage file Data privileged reader
 4. The user service principal has the Azure AI Inference Deployment Operator role
 5. The AI project has the Azure AI administrator role to itself
 6. The AI hub needs to have the user service principal have Azure AI inference deployment operator and the AI hub needs to have the Azure AI adminstrator role for itself.
