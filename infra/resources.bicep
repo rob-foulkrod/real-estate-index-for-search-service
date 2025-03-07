@@ -213,7 +213,7 @@ module mlWorkspaceHub 'br/public:avm/res/machine-learning-services/workspace:0.1
       {
         principalId: currentUserId
         principalType: 'User'
-        roleDefinitionIdOrName: 'Azure AI Inference Deployment Operator'
+        roleDefinitionIdOrName: '3afb7f49-54cb-416e-8c09-6dc049efa503' // 'Azure AI Inference Deployment Operator'
       }
     ]
   }
@@ -242,7 +242,7 @@ module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0
       {
         principalId: currentUserId
         principalType: 'User'
-        roleDefinitionIdOrName: 'Azure AI Inference Deployment Operator'
+        roleDefinitionIdOrName: '3afb7f49-54cb-416e-8c09-6dc049efa503' // 'Azure AI Inference Deployment Operator'
       }
     ]
   }
