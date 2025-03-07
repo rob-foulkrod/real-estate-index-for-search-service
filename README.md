@@ -68,6 +68,16 @@ Security and Resources: Projects inherit security settings and shared resource a
 Organize Work: Use projects to organize work, isolate data, and restrict access as needed.
 Preconfigure Resources: Set up connections to shared resources within the hub for easy access. For SFI purposes, we are going to have the following roles: Search Index contributor, search index data contributor, Storage blob data reader, and a managed identity of Azure AI administrator for the ML service to the AI foundry hub.
 
+### Security roles needed
+1. The user service principal needs to be an owner on the search service
+2. AI hub and project need to contributors on the search service
+3. The AI hub and the user service principal need to have the following roles: Search Index Data Contributor, Search Service Contributor, Storage Blob data reader and Storage file Data privileged reader
+4. The user service principal has the Azure AI Inference Deployment Operator role
+5. The AI project has the Azure AI administrator role to itself
+6. The AI hub needs to have the user service principal have Azure AI inference deployment operator and the AI hub needs to have the Azure AI adminstrator role for itself.
+7. The user service principal needs owner access to the AI hub.
+
+
 ### Troubleshooting
 If you encounter any issues, refer to the Azure AI Foundry documentation for detailed troubleshooting steps.
  
