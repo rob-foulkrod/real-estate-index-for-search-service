@@ -272,7 +272,6 @@ module HubToSearchService 'br/public:avm/ptn/authorization/resource-role-assignm
 }
 
 
-=
 module ProjectToSearchService 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
   name: 'ProjectToSearchServiceRole'
   params: {
