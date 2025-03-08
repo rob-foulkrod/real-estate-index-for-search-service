@@ -63,6 +63,18 @@ Once the resources are all deployed. You can go ahead and demo RAG capabilities 
 2. Deploy an Azure OpenAI model(4o-mini is a good option)
 3. Open the playground with the model
 ![image](https://github.com/user-attachments/assets/59fc3996-00f7-4557-bf01-768c424f3f83)
+4. Open "Add your data" carat menu and click on the "Add a new data source" button
+5.  Select Azure AI search
+![image](https://github.com/user-attachments/assets/4011ab51-7c20-4ceb-9ca1-95388a4d1c9b)
+6. For the source index, click on the select Azure AI Search service dropdown and click on the "Connect other Azure AI Search resource" button
+7. Select the Azure AI search service in your resource group and then select the default Azure AI Search index which is "**hotels**"
+![image](https://github.com/user-attachments/assets/60614a27-53d6-47f9-8994-b96bcd837edc)
+9. Optionally, you can add a vector search if you want that as part of your RAG solution
+10. Create a vector index
+11. Use that Index alongside your LLM.
+![image](https://github.com/user-attachments/assets/14f4e9af-78f0-498e-acfd-5c68070d88ae)
+12. Now ask questions related to your index. So you can try out a query/input like "Which Hotels should I go to in London"
+
 
 
 
