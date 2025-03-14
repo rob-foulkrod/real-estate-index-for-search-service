@@ -47,7 +47,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.18.0' = {
     name: uniquie_storage_name
     
     allowBlobPublicAccess: true
-    allowSharedKeyAccess: false
+    allowSharedKeyAccess: true //This needs to go back to false
     defaultToOAuthAuthentication: true
     location: location
     blobServices: {
