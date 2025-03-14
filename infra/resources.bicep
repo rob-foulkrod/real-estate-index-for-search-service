@@ -47,7 +47,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.18.0' = {
     name: uniquie_storage_name
     
     allowBlobPublicAccess: true
-    allowSharedKeyAccess: true
+    allowSharedKeyAccess: false
     defaultToOAuthAuthentication: true
     location: location
     blobServices: {
@@ -209,6 +209,7 @@ module mlWorkspaceHub 'br/public:avm/res/machine-learning-services/workspace:0.1
     associatedStorageAccountResourceId: storageAccount.outputs.resourceId
     location: location
     publicNetworkAccess: 'Enabled'
+    systemDatastoresAuthMode: 'identity'
     roleAssignments: [
       {
         principalId: currentUserId
@@ -217,7 +218,7 @@ module mlWorkspaceHub 'br/public:avm/res/machine-learning-services/workspace:0.1
       }
     ]
   }
-  
+
 }
 
  
