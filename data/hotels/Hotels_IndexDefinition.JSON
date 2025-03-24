@@ -1,4 +1,4 @@
-﻿{
+{
 	"name":"hotels",
 	"fields":[
 	   {
@@ -324,59 +324,80 @@
 	"encryptionKey":null,
 	"@odata.etag":"\"0x8D842F5970E055B\"",
 	"vectorSearch": {
-     "compressions": [
-         {
-             "name": "scalar-quantization",
-             "kind": "scalarQuantization",
-             "rerankWithOriginalVectors": true,
-             "defaultOversampling": 10.0,
-                 "scalarQuantizationParameters": {
-                     "quantizedDataType": "int8"
-                 }
-         },
-         {
-             "name": "binary-quantization",
-             "kind": "binaryQuantization",
-             "rerankWithOriginalVectors": true,
-             "defaultOversampling": 10.0
-         }
-     ],
-     "algorithms": [
-         {
-             "name": "hnsw-1",
-             "kind": "hnsw",
-             "hnswParameters": {
-                 "m": 4,
-                 "efConstruction": 400,
-                 "efSearch": 500,
-                 "metric": "cosine"
-             }
-         },
-         {
-             "name": "hnsw-2",
-             "kind": "hnsw",
-             "hnswParameters": {
-                 "m": 8,
-                 "efConstruction": 800,
-                 "efSearch": 800,
-                 "metric": "hamming"
-             }
-         },
-         {
-             "name": "eknn",
-             "kind": "exhaustiveKnn",
-             "exhaustiveKnnParameters": {
-                 "metric": "euclidean"
-             }
-         }
-
-     ],
-     "profiles": [
-       {
-         "name": "vector-profile-hnsw-scalar",
-         "compression": "scalar-quantization",
-         "algorithm": "hnsw-1"
-       }
-     ]
- 	}
+    "algorithms": [
+      {
+        "name": "hnsw-1",
+        "kind": "hnsw",
+        "hnswParameters": {
+          "metric": "cosine",
+          "m": 4,
+          "efConstruction": 400,
+          "efSearch": 500
+        }
+      },
+      {
+        "name": "hnsw-2",
+        "kind": "hnsw",
+        "hnswParameters": {
+          "metric": "hamming",
+          "m": 8,
+          "efConstruction": 800,
+          "efSearch": 800
+        }
+      },
+      {
+        "name": "eknn",
+        "kind": "exhaustiveKnn",
+        "exhaustiveKnnParameters": {
+          "metric": "euclidean"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "name": "vector-profile-hnsw-scalar",
+        "algorithm": "hnsw-1",
+        "vectorizer": "builtin-vectorizer",
+        "compression": "scalar-quantization"
+      }
+    ],
+    "vectorizers": [
+      {
+        "name": "builtin-vectorizer",
+        "kind": "azureOpenAI",
+        "azureOpenAIParameters": {
+          "resourceUri": "https://<projectName>.openai.azure.com",
+          "deploymentId": "text-embedding-3-large",
+          "modelName": "text-embedding-3-large",
+          "authIdentity": {
+            "@odata.type": "#Microsoft.Azure.Search.DataUserAssignedIdentity",
+            "userAssignedIdentity": "<servicePrincipalId>"
+          }
+        }
+      }
+    ],
+    "compressions": [
+      {
+        "name": "scalar-quantization",
+        "kind": "scalarQuantization",
+        "scalarQuantizationParameters": {
+          "quantizedDataType": "int8"
+        },
+        "rescoringOptions": {
+          "enableRescoring": true,
+          "defaultOversampling": 10,
+          "rescoreStorageMethod": "preserveOriginals"
+        }
+      },
+      {
+        "name": "binary-quantization",
+        "kind": "binaryQuantization",
+        "rescoringOptions": {
+          "enableRescoring": true,
+          "defaultOversampling": 10,
+          "rescoreStorageMethod": "preserveOriginals"
+        }
+      }
+    ]
+  }
 }
