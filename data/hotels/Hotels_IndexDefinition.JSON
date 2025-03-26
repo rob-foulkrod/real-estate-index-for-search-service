@@ -1,300 +1,327 @@
 {
-    "name": "hotels",
-    "fields": [
-        {
-            "name": "HotelId", 
-            "type": "Edm.String",
-            "searchable": false, 
-            "filterable": true, 
-            "retrievable": true, 
-            "sortable": false, 
-            "facetable": false,
-            "key": true
-        },
-        {
-            "name": "HotelName", 
-            "type": "Edm.String",
-            "searchable": true, 
-            "filterable": false, 
-            "retrievable": true, 
-            "sortable": true, 
-            "facetable": false
-        },
-        {
-            "name": "HotelNameVector",
-            "type": "Collection(Edm.Single)",
-            "searchable": true,
-            "retrievable": true,
-            "dimensions": 1536,
-            "vectorSearchProfile": "my-vector-profile"
-        },
-        {
-            "name": "Description", 
-            "type": "Edm.String",
-            "searchable": true, 
-            "filterable": false, 
-            "retrievable": true, 
-            "sortable": false, 
-            "facetable": false
-        },
-        {
-            "name": "DescriptionVector",
-            "type": "Collection(Edm.Single)",
-            "searchable": true,
-            "retrievable": true,
-            "dimensions": 1536,
-            "vectorSearchProfile": "my-vector-profile"
-        },
-                {
-            "name": "Description_fr", 
-            "type": "Edm.String",
-            "searchable": true, 
-            "filterable": false, 
-            "retrievable": true, 
-            "sortable": false, 
-            "facetable": false,
-            "analyzer": "en.microsoft"
-        },
-        {
-            "name": "Description_frvector",
-            "type": "Collection(Edm.Single)",
-            "searchable": true,
-            "retrievable": true,
-            "dimensions": 1536,
-            "vectorSearchProfile": "my-vector-profile"
-        },
-        {
-            "name": "Category", 
-            "type": "Edm.String",
-            "searchable": true, 
-            "filterable": true, 
-            "retrievable": true, 
-            "sortable": true, 
-            "facetable": true
-        },
-        {
-            "name": "Tags",
-            "type": "Collection(Edm.String)",
-            "searchable": true,
-            "filterable": true,
-            "retrievable": true,
-            "sortable": false,
-            "facetable": true
-        },
-                {
-            "name": "ParkingIncluded",
-            "type": "Edm.Boolean",
-            "searchable": false,
-            "filterable": true,
-            "retrievable": true,
-            "sortable": true,
-            "facetable": true
-        },
-        {
-	    "name":"IsDeleted",
-	    "type":"Edm.Boolean",
-	    "facetable":false,
-	    "filterable":true,
-	    "sortable":true,
-	    "retrievable":true
-        },
-        {
-            "name": "LastRenovationDate",
-            "type": "Edm.DateTimeOffset",
-            "searchable": false,
-            "filterable": true,
-            "retrievable": true,
-            "sortable": true,
-            "facetable": true
-        },
-        {
-            "name": "Rating",
-            "type": "Edm.Double",
-            "searchable": false,
-            "filterable": true,
-            "retrievable": true,
-            "sortable": true,
-            "facetable": true
-        },
-        {
-            "name": "Address", 
-            "type": "Edm.ComplexType",
-            "fields": [
-                {
-                    "name": "StreetAddress", "type": "Edm.String",
-                    "searchable": true, "filterable": false, "retrievable": true, "sortable": false, "facetable": false
-                },
-                {
-                    "name": "City", "type": "Edm.String",
-                    "searchable": true, "filterable": true, "retrievable": true, "sortable": true, "facetable": true
-                },
-                {
-                    "name": "StateProvince", "type": "Edm.String",
-                    "searchable": true, "filterable": true, "retrievable": true, "sortable": true, "facetable": true
-                },
-                {
-                    "name": "PostalCode", "type": "Edm.String",
-                    "searchable": true, "filterable": true, "retrievable": true, "sortable": true, "facetable": true
-                },
-                {
-                    "name": "Country", "type": "Edm.String",
-                    "searchable": true, "filterable": true, "retrievable": true, "sortable": true, "facetable": true
-                }
-            ]
-        },
-        {
-            "name": "Location",
-            "type": "Edm.GeographyPoint",
-            "searchable": false, 
-            "filterable": true, 
-            "retrievable": true, 
-            "sortable": true, 
-            "facetable": false
-        },
-	{
-		  "name":"Rooms",
-		  "type":"Collection(Edm.ComplexType)",
-		  "fields":[
-			 {
-				"name":"Description",
-				"type":"Edm.String",
-				"facetable":false,
-				"filterable":false,
-				"retrievable":true,
-				"searchable":true,
-				"sortable":false,
-				"analyzer":"en.lucene"
-			 },
-			 {
-				"name":"Description_fr",
-				"type":"Edm.String",
-				"facetable":false,
-				"filterable":false,
-				"retrievable":true,
-				"searchable":true,
-				"sortable":false,
-				"analyzer":"fr.lucene"
-			 },
-			 {
-				"name":"Type",
-				"type":"Edm.String",
-				"facetable":true,
-				"filterable":true,
-				"retrievable":true,
-				"searchable":true
-			 },
-			 {
-				"name":"BaseRate",
-				"type":"Edm.Double",
-				"facetable":true,
-				"filterable":true,
-				"retrievable":true
-			 },
-			 {
-				"name":"BedOptions",
-				"type":"Edm.String",
-				"facetable":true,
-				"filterable":true,
-				"retrievable":true,
-				"searchable":true,
-				"sortable":false
-			 },
-			 {
-				"name":"SleepsCount",
-				"type":"Edm.Int32",
-				"facetable":true,
-				"filterable":true,
-				"retrievable":true,
-				"sortable":false
-			 },
-			 {
-				"name":"SmokingAllowed",
-				"type":"Edm.Boolean",
-				"facetable":true,
-				"filterable":true,
-				"retrievable":true,
-				"sortable":false
-			 },
-			 {
-				"name":"Tags",
-				"type":"Collection(Edm.String)",
-				"facetable":true,
-				"filterable":true,
-				"retrievable":true,
-				"searchable":true
-			 }
-		  ]
-    ],
-    "vectorSearch": {
-        "algorithms": [
-            {
-                "name": "my-hnsw-vector-config-1",
-                "kind": "hnsw",
-                "hnswParameters": 
-                {
-                    "m": 4,
-                    "efConstruction": 400,
-                    "efSearch": 500,
-                    "metric": "cosine"
-                }
-            },
-            {
-                "name": "my-hnsw-vector-config-2",
-                "kind": "hnsw",
-                "hnswParameters": 
-                {
-                    "m": 4,
-                    "metric": "euclidean"
-                }
-            },
-            {
-                "name": "my-eknn-vector-config",
-                "kind": "exhaustiveKnn",
-                "exhaustiveKnnParameters": 
-                {
-                    "metric": "cosine"
-                }
-            }
-        ],
-		"vectorizers": [
-			{
-			  "name": "builtin-vectorizer",
-			  "kind": "azureOpenAI",
-			  "azureOpenAIParameters": {
-				"resourceUri": "https://<projectName>.openai.azure.com",
-				"deploymentId": "text-embedding-3-large",
-				"modelName": "text-embedding-3-large",
-				"authIdentity": {
-				  "@odata.type": "#Microsoft.Azure.Search.DataUserAssignedIdentity",
-				  "userAssignedIdentity": "<servicePrincipalResourceId>"
+	"name": "hotels",
+	"fields": [
+		{
+			"name": "HotelId",
+			"type": "Edm.String",
+			"searchable": false,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": false,
+			"facetable": false,
+			"key": true
+		},
+		{
+			"name": "HotelName",
+			"type": "Edm.String",
+			"searchable": true,
+			"filterable": false,
+			"retrievable": true,
+			"sortable": true,
+			"facetable": false
+		},
+		{
+			"name": "HotelNameVector",
+			"type": "Collection(Edm.Single)",
+			"searchable": true,
+			"retrievable": true,
+			"dimensions": 1536,
+			"vectorSearchProfile": "my-vector-profile"
+		},
+		{
+			"name": "Description",
+			"type": "Edm.String",
+			"searchable": true,
+			"filterable": false,
+			"retrievable": true,
+			"sortable": false,
+			"facetable": false
+		},
+		{
+			"name": "DescriptionVector",
+			"type": "Collection(Edm.Single)",
+			"searchable": true,
+			"retrievable": true,
+			"dimensions": 1536,
+			"vectorSearchProfile": "my-vector-profile"
+		},
+		{
+			"name": "Description_fr",
+			"type": "Edm.String",
+			"searchable": true,
+			"filterable": false,
+			"retrievable": true,
+			"sortable": false,
+			"facetable": false,
+			"analyzer": "en.microsoft"
+		},
+		{
+			"name": "Description_frvector",
+			"type": "Collection(Edm.Single)",
+			"searchable": true,
+			"retrievable": true,
+			"dimensions": 1536,
+			"vectorSearchProfile": "my-vector-profile"
+		},
+		{
+			"name": "Category",
+			"type": "Edm.String",
+			"searchable": true,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": true,
+			"facetable": true
+		},
+		{
+			"name": "Tags",
+			"type": "Collection(Edm.String)",
+			"searchable": true,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": false,
+			"facetable": true
+		},
+		{
+			"name": "ParkingIncluded",
+			"type": "Edm.Boolean",
+			"searchable": false,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": true,
+			"facetable": true
+		},
+		{
+			"name": "IsDeleted",
+			"type": "Edm.Boolean",
+			"facetable": false,
+			"filterable": true,
+			"sortable": true,
+			"retrievable": true
+		},
+		{
+			"name": "LastRenovationDate",
+			"type": "Edm.DateTimeOffset",
+			"searchable": false,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": true,
+			"facetable": true
+		},
+		{
+			"name": "Rating",
+			"type": "Edm.Double",
+			"searchable": false,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": true,
+			"facetable": true
+		},
+		{
+			"name": "Address",
+			"type": "Edm.ComplexType",
+			"fields": [
+				{
+					"name": "StreetAddress",
+					"type": "Edm.String",
+					"searchable": true,
+					"filterable": false,
+					"retrievable": true,
+					"sortable": false,
+					"facetable": false
+				},
+				{
+					"name": "City",
+					"type": "Edm.String",
+					"searchable": true,
+					"filterable": true,
+					"retrievable": true,
+					"sortable": true,
+					"facetable": true
+				},
+				{
+					"name": "StateProvince",
+					"type": "Edm.String",
+					"searchable": true,
+					"filterable": true,
+					"retrievable": true,
+					"sortable": true,
+					"facetable": true
+				},
+				{
+					"name": "PostalCode",
+					"type": "Edm.String",
+					"searchable": true,
+					"filterable": true,
+					"retrievable": true,
+					"sortable": true,
+					"facetable": true
+				},
+				{
+					"name": "Country",
+					"type": "Edm.String",
+					"searchable": true,
+					"filterable": true,
+					"retrievable": true,
+					"sortable": true,
+					"facetable": true
 				}
-			  }
+			]
+		},
+		{
+			"name": "Location",
+			"type": "Edm.GeographyPoint",
+			"searchable": false,
+			"filterable": true,
+			"retrievable": true,
+			"sortable": true,
+			"facetable": false
+		},
+		{
+			"name": "Rooms",
+			"type": "Collection(Edm.ComplexType)",
+			"fields": [
+				{
+					"name": "Description",
+					"type": "Edm.String",
+					"facetable": false,
+					"filterable": false,
+					"retrievable": true,
+					"searchable": true,
+					"sortable": false,
+					"analyzer": "en.lucene"
+				},
+				{
+					"name": "Description_fr",
+					"type": "Edm.String",
+					"facetable": false,
+					"filterable": false,
+					"retrievable": true,
+					"searchable": true,
+					"sortable": false,
+					"analyzer": "fr.lucene"
+				},
+				{
+					"name": "Type",
+					"type": "Edm.String",
+					"facetable": true,
+					"filterable": true,
+					"retrievable": true,
+					"searchable": true
+				},
+				{
+					"name": "BaseRate",
+					"type": "Edm.Double",
+					"facetable": true,
+					"filterable": true,
+					"retrievable": true
+				},
+				{
+					"name": "BedOptions",
+					"type": "Edm.String",
+					"facetable": true,
+					"filterable": true,
+					"retrievable": true,
+					"searchable": true,
+					"sortable": false
+				},
+				{
+					"name": "SleepsCount",
+					"type": "Edm.Int32",
+					"facetable": true,
+					"filterable": true,
+					"retrievable": true,
+					"sortable": false
+				},
+				{
+					"name": "SmokingAllowed",
+					"type": "Edm.Boolean",
+					"facetable": true,
+					"filterable": true,
+					"retrievable": true,
+					"sortable": false
+				},
+				{
+					"name": "Tags",
+					"type": "Collection(Edm.String)",
+					"facetable": true,
+					"filterable": true,
+					"retrievable": true,
+					"searchable": true
+				}
+			]
+		}
+	],
+	"vectorSearch": {
+		"algorithms": [
+			{
+				"name": "my-hnsw-vector-config-1",
+				"kind": "hnsw",
+				"hnswParameters": {
+					"m": 4,
+					"efConstruction": 400,
+					"efSearch": 500,
+					"metric": "cosine"
+				}
+			},
+			{
+				"name": "my-hnsw-vector-config-2",
+				"kind": "hnsw",
+				"hnswParameters": {
+					"m": 4,
+					"metric": "euclidean"
+				}
+			},
+			{
+				"name": "my-eknn-vector-config",
+				"kind": "exhaustiveKnn",
+				"exhaustiveKnnParameters": {
+					"metric": "cosine"
+				}
 			}
 		],
-        "profiles": [      
-            {
-                "name": "my-vector-profile",
-                "algorithm": "my-hnsw-vector-config-1",
+		"vectorizers": [
+			{
+				"name": "builtin-vectorizer",
+				"kind": "azureOpenAI",
+				"azureOpenAIParameters": {
+					"resourceUri": "https://<projectName>.openai.azure.com",
+					"deploymentId": "text-embedding-3-large",
+					"modelName": "text-embedding-3-large",
+					"authIdentity": {
+						"@odata.type": "#Microsoft.Azure.Search.DataUserAssignedIdentity",
+						"userAssignedIdentity": "<servicePrincipalResourceId>"
+					}
+				}
+			}
+		],
+		"profiles": [
+			{
+				"name": "my-vector-profile",
+				"algorithm": "my-hnsw-vector-config-1",
 				"vectorizer": "builtin-vectorizer"
-            }
-      ]
-    },
-    "semantic": {
-        "configurations": [
-            {
-                "name": "my-semantic-config",
-                "prioritizedFields": {
-                    "titleField": {
-                        "fieldName": "HotelName"
-                    },
-                    "prioritizedContentFields": [
-                        { "fieldName": "Description" }
-                    ],
-                    "prioritizedKeywordsFields": [
-                        { "fieldName": "Category" }
-                    ]
-                }
-            }
-        ]
-    }
+			}
+		]
+	},
+	"semantic": {
+		"configurations": [
+			{
+				"name": "my-semantic-config",
+				"prioritizedFields": {
+					"titleField": {
+						"fieldName": "HotelName"
+					},
+					"prioritizedContentFields": [
+						{
+							"fieldName": "Description"
+						}
+					],
+					"prioritizedKeywordsFields": [
+						{
+							"fieldName": "Category"
+						}
+					]
+				}
+			}
+		]
+	}
 }
