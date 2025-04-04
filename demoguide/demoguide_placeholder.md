@@ -34,23 +34,6 @@ List of all resources within the deployed resource group:
 - **Azure AI Search Service**: The service that acts as your repository for your indexes(vector and semantic) and helps your LLMs' work with the retrieved data
 - **Event Grid System Topic**: The Azure Event Grid system topic is automatically created by Azure services to manage and publish events from those services.
 
-
-* rg-%azdenvironmentname - Azure Resource Group.
-* TMLABAppSvcPlan-%region% - Azure App Service Plan in each region
-* TMLABWebApp-%region% - Azure App Service with static HTML webpage in each region
-* TMProfile - Traffic Manager Profile with endpoints
-
-<add a screenshot of the deployed Resource Group with resources>
-
-<img src="https://raw.githubusercontent.com/petender/azd-tdd-starter/refs/heads/main/demoguide/TM/screenshot1.png" alt="Traffic Manager Resource Group" style="width:70%;">
-<br></br>
-
-<img src="https://raw.githubusercontent.com/petender/azd-tdd-starter/refs/heads/main/demoguide/TM/screenshot2.png" alt="Traffic Manager Profile with Endpoints" style="width:70%;">
-<br></br>
-
-<img src="https://raw.githubusercontent.com/petender/azd-tdd-starter/refs/heads/main/demoguide/TM/screenshot3.png" alt="Sample WebApp" style="width:70%;">
-<br></br>
-
 ### 2. What can I demo from this scenario after deployment
 
 Provide clear step-by-step instructions on what can be demoed after the scenario got deployed. If your demo requires additional manual steps to configure or update settings or make changes to the deployed resources, please mention it here.
