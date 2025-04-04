@@ -55,7 +55,7 @@ List of all resources within the deployed resource group:
 
 Provide clear step-by-step instructions on what can be demoed after the scenario got deployed. If your demo requires additional manual steps to configure or update settings or make changes to the deployed resources, please mention it here.
 
-Add screenshots where relevant. The can be stored in their own subfolder under the demoguide folder.
+Add screenshots where relevant. They can be stored in their own subfolder under the demoguide folder.
 
 Once the resources are all deployed. You can go ahead and demo RAG capabilities to your learners. You can do so by following the steps below.
 1. Launch your Azure AI project
@@ -64,16 +64,14 @@ Once the resources are all deployed. You can go ahead and demo RAG capabilities 
 3. Open the playground with the model
 ![image](https://github.com/user-attachments/assets/59fc3996-00f7-4557-bf01-768c424f3f83)
 4. Open "Add your data" carat menu and click on the "Add a new data source" button
-5.  Select Azure AI search
-![image](https://github.com/user-attachments/assets/4011ab51-7c20-4ceb-9ca1-95388a4d1c9b)
-6. For the source index, click on the select Azure AI Search service dropdown and click on the "Connect other Azure AI Search resource" button
-7. Select the Azure AI search service in your resource group and then select the default Azure AI Search index which is "**hotels**"
-![image](https://github.com/user-attachments/assets/60614a27-53d6-47f9-8994-b96bcd837edc)
-9. Optionally, you can add a vector search if you want that as part of your RAG solution
-10. Create a vector index
-11. Use that Index alongside your LLM.
+5.  Select "Upload files"
+![image](https://github.com/user-attachments/assets/c566d33d-8368-4079-89c3-097046c8ed40)
+6. Find a suitable file like a pdf.
+7. Optionally, you can add a vector search if you want that as part of your RAG solution
+8. Create a vector index
+9. Use that Index alongside your LLM.
 ![image](https://github.com/user-attachments/assets/14f4e9af-78f0-498e-acfd-5c68070d88ae)
-12. Now ask questions related to your index. So you can try out a query/input like "Which Hotels should I go to in London"
+10. Now ask questions related to your index. So you can try out a query/input like "Which Hotels should I go to in London"
 
 
 
