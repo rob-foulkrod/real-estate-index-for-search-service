@@ -14,12 +14,18 @@ param currentUserId string
 var tags = {
   'azd-env-name': environmentName
 }
+
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
+
+var resourceGroupName = 'rg-${environmentName}'
+
+
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
-  name: 'rg-${environmentName}'
+  name: resourceGroupName
   location: location
   tags: tags
+
 }
 
 module resources './resources.bicep' = {
@@ -37,10 +43,4 @@ module resources './resources.bicep' = {
   }
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: 'rg-roleassignment-deployment'
-  properties: {
-    roleDefinitionId: 'b24988ac-6180-42a0-ab88-20f7382dd24c' // Contributor role
-    principalId: resources.outputs.projectIdentityId
-  }
-}
+

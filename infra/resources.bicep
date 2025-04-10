@@ -30,6 +30,16 @@ var uniquie_storage_name = 'st${resourceToken}'
 targetScope = 'resourceGroup'
  
 
+resource rgContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().name, 'contributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+    principalId: currentUserId
+    principalType: 'User'
+  }
+}
+
+
 module projectIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.0' = {
   name: 'hubIdentityDeployment'
   params: {
@@ -37,7 +47,6 @@ module projectIdentity 'br/public:avm/res/managed-identity/user-assigned-identit
     location: location
   }
 }
-
 
 
 /* -------------------------------------------------------------------
@@ -121,7 +130,7 @@ module cognitiveServices 'br/public:avm/res/cognitive-services/account:0.10.0' =
     tags: tags
     sku: 'S0'
     kind: 'AIServices'
-    disableLocalAuth: false
+    disableLocalAuth: true
     managedIdentities: {
       systemAssigned: true
     }
@@ -250,12 +259,8 @@ module searchService 'br/public:avm/res/search/search-service:0.9.0' = {
         ipRules: []
         bypass: 'None'
       }
-      disableLocalAuth: false
-      authOptions: {
-        aadOrApiKey: {
-          aadAuthFailureMode: 'http401WithBearerChallenge'
-        }
-      }
+      disableLocalAuth: true
+
       
       semanticSearch: 'standard'
     }
@@ -335,11 +340,6 @@ module mlWorkspaceHub 'br/public:avm/res/machine-learning-services/workspace:0.1
 
 }
 
-
-
-
-
-
  
 /* The “project” AML workspace */
 module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0.10.0' = {
@@ -380,158 +380,8 @@ module workspaceProject 'br/public:avm/res/machine-learning-services/workspace:0
   }
 }
 
-module uploadBlobsScript 'br/public:avm/res/resources/deployment-script:0.5.0' = {
-  name: 'uploadBlobsScriptDeployment'
-  params: {
-    kind: 'AzurePowerShell'
-    name: 'pwscript-uploadBlobsScript'
-    azPowerShellVersion: '12.3'
-    location: location
-    
-    managedIdentities: {
-      userAssignedResourceIds: [
-        projectIdentity.outputs.resourceId
-      ]
-    }
-
-    cleanupPreference: 'OnSuccess'
-    retentionInterval: 'P1D'
-    enableTelemetry: true
-    storageAccountResourceId: storageAccount.outputs.resourceId
-    arguments: '-StorageAccountName ${storageAccount.outputs.name} -SearchServiceName ${searchService.outputs.name} -ProjectName ${unique_cognitiveService_name} -ServicePrincipalResourceId ${projectIdentity.outputs.resourceId} ' //multi line strings do not support interpolation in bicep yet
-
-    scriptContent: '''
-      param(
-          [string] $StorageAccountName,
-          [string] $SearchServiceName,
-          [string] $ProjectName,
-          [string] $ServicePrincipalResourceId
-      )
-      
-      # Validate Parameters
-      if ($StorageAccountName -eq $null) {
-          throw "Storage Account is not supplied as a parameter"
-      }
-      if ($SearchServiceName -eq $null) {
-          throw "Search Service Name is not supplied as a parameter"
-      }
-      
-      try {
-          # Upload Documents to Azure Storage
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/rob-foulkrod/aihubs/refs/heads/main/data/hotels/HotelsData_toAzureSearch.JSON" -OutFile HotelsData_toAzureSearch.JSON -UseBasicParsing
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/rob-foulkrod/aihubs/refs/heads/main/data/hotels/HotelsData_toAzureSearch.csv" -OutFile HotelsData_toAzureSearch.csv -UseBasicParsing
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/rob-foulkrod/aihubs/refs/heads/main/data/hotels/Hotels_IndexDefinition.JSON" -OutFile Hotels_IndexDefinition.JSON -UseBasicParsing
-      
-          $context = New-AzStorageContext -StorageAccountName $StorageAccountName
-      
-          # samples container is precreated in the storage bicep resource
-          Set-AzStorageBlobContent -Context $context -Container "samples" -File HotelsData_toAzureSearch.JSON -Blob HotelsData_toAzureSearch.JSON -Force
-          Set-AzStorageBlobContent -Context $context -Container "samples" -File HotelsData_toAzureSearch.csv -Blob HotelsData_toAzureSearch.csv -Force
-          Set-AzStorageBlobContent -Context $context -Container "samples" -File Hotels_IndexDefinition.JSON -Blob Hotels_IndexDefinition.JSON -Force
-      
-        
-          # Search Get Access Token
-          $access_token = (Get-AzAccessToken -ResourceUrl "https://search.azure.com").Token
-      
-          # throw exception of the access token is not retrieved
-          if ($access_token -eq $null) {
-              throw "Failed to retrieve access token"
-          }
-
-          echo "Access Token retrieved successfully"
-
-
-          # replace the <projectName> placeholder in the index definition with the project name
-          $indexDefinition = Get-Content -Path './Hotels_IndexDefinition.JSON' -Raw
-
-          echo "Index Definition before replacement:"
-          echo $indexDefinition
-          echo ''
-
-
-          $indexDefinition = $indexDefinition -replace '<projectName>', $ProjectName
-          Set-Content -Path './Hotels_IndexDefinition.JSON' -Value $indexDefinition
-
-          #replace the <servicePrincipalId> placeholder in the index definition with the service principal id
-          $indexDefinition = Get-Content -Path './Hotels_IndexDefinition.JSON' -Raw 
-          $indexDefinition = $indexDefinition -replace '<servicePrincipalResourceId>', $ServicePrincipalResourceId
-          Set-Content -Path './Hotels_IndexDefinition.JSON' -Value $indexDefinition
-          
-          echo "Index Definition after replacement:"
-          echo $indexDefinition
-          echo ''
-
-
-          # Create Index
-          $uri = "https://$SearchServiceName.search.windows.net/indexes?api-version=2024-11-01-preview"
-          $body = Get-Content -Path './Hotels_IndexDefinition.JSON' -Raw
-
-          $maxRetries = 3
-          $retryCount = 0
-          $success = $false
-      
-          while (-not $success -and $retryCount -lt $maxRetries) {
-              $response = ''
-              try {
-                  $response = Invoke-RestMethod -Uri $uri -Method 'POST' -Body $body -Headers @{Authorization="Bearer $access_token"} -ContentType "application/json"
-                  echo $response
-                  $success = $true
-              } catch {
-                  $retryCount++
-                  Write-Host "Attempt $retryCount failed"
-                  Write-Host "Response: $response"
-                  Write-Host "Error: $_"
-                  Write-Host "Retrying in 2 seconds..."
-                  Start-Sleep -Seconds 2
-              }
-          }
-      
-          if (-not $success) {
-              throw "Failed to create index after $maxRetries attempts."
-          }
 
 
 
-
-          # Upload Data to Index
-          $uri = "https://$SearchServiceName.search.windows.net/indexes/hotels/docs/index?api-version=2024-11-01-preview"
-          $body = Get-Content -Path HotelsData_toAzureSearch.JSON -Raw
-      
-          $maxRetries = 3
-          $retryCount = 0
-          $success = $false
-      
-          while (-not $success -and $retryCount -lt $maxRetries) {
-              $response = ''
-              try {
-                  $response = Invoke-RestMethod -Uri $uri -Method 'POST' -Body $body -Headers @{Authorization="Bearer $access_token"} -ContentType "application/json"
-                  echo $response  
-                  echo "Data uploaded successfully"
-                  $success = $true
-              } catch {
-                  $retryCount++
-                  Write-Host "Attempt $retryCount failed."
-                  Write-Host "Response: $response"
-                  Write-Host "Error: $_"
-                  Write-Host "Retrying in 2 seconds..."
-                  Start-Sleep -Seconds 2
-              }
-          }
-      
-          if (-not $success) {
-              throw "Failed to upload data to index after $maxRetries attempts."
-          }
-      
-
-      } catch {
-          Write-Host "An error occurred: $_"
-          throw
-      }
-      '''
-  }
-  dependsOn: [
-    cognitiveServices
-  ]
-}
 
 output projectIdentityId string = projectIdentity.outputs.resourceId
